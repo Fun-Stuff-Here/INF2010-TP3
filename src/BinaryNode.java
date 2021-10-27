@@ -1,7 +1,4 @@
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class BinaryNode<T extends Comparable<? super T> > {
     private T data;
@@ -16,14 +13,7 @@ public class BinaryNode<T extends Comparable<? super T> > {
         this.data = data;
         this.right = null;
         this.left = null;
-        this.depth = 0;
-    }
-
-    // O(1)
-    public BinaryNode(T data,int depth)
-    {
-        this(data);
-        this.depth = depth;
+        this.depth=-1;
     }
 
     // TODO: on retourne la donnee voulue
@@ -37,40 +27,56 @@ public class BinaryNode<T extends Comparable<? super T> > {
     // O(log(n))
     public void insert(T item)
     {
-       int compare = item.compareTo(this.data);
-       if(compare<=0){
-           if(this.left == null) this.left = new BinaryNode<T>(item,this.getDepth()+1);
-           else this.left.insert(item);
-       }
-       else{
-           if(this.right == null) this.right = new BinaryNode<T>(item,this.getDepth()+1);
-           else this.right.insert(item);
-       }
+        BinaryNode<T> currentNode = this;
+        BinaryNode<T> previousNode = currentNode;
+        while (currentNode != null) {
+            previousNode = currentNode;
+            if (item.compareTo(currentNode.data) <= 0) currentNode = currentNode.left;
+            else currentNode = currentNode.right;
+        }
+        if(item.compareTo(previousNode.data) <= 0) previousNode.left = new BinaryNode<>(item);
+        else previousNode.right = new BinaryNode<>(item);
+
     }
 
     // TODO: est-ce que l'item fais partie du noeuds courant
     // O(log(n))
     public boolean contains(T item) {
-        int compare = item.compareTo(this.data);
-        if(compare==0) return true;
-        else{
-            if(compare<0 && this.left != null) return this.left.contains(item);
-            if(this.right != null) return this.right.contains(item);
-            return false;
+        BinaryNode<T> currentNode = this;
+        while (currentNode != null) {
+            int compare = item.compareTo(currentNode.data);
+            if (compare < 0) currentNode = currentNode.left;
+            if(compare > 0)currentNode = currentNode.right;
+            else return true;
         }
-    }
-
-    public int getDepth() {
-        return depth;
+        return false;
     }
 
     // TODO: on retourne la maximale de l'arbre
     // O(n)
     public int getHeight() {
-        if(this.left == null && this.right ==null) return this.depth;
-        else if(this.left == null) return this.right.getHeight();
-        else if(this.right == null) return this.left.getHeight();
-        return Math.max(this.left.getHeight(), this.right.getHeight());
+
+        int depth =-1;
+        int height =0;
+
+        Stack<BinaryNode<T>> stack = new Stack<>();
+        BinaryNode<T> currentNode = this;
+        while(currentNode != null || stack.size()>0){
+
+            while (currentNode != null){
+                currentNode.depth = ++depth;
+                stack.push(currentNode);
+                currentNode = currentNode.left;
+            }
+
+            currentNode = stack.pop();
+            depth = currentNode.depth;
+            if(depth>height) height = depth;
+
+            currentNode = currentNode.right;
+        }
+        return height;
+
     }
 
     // TODO: l'ordre d'insertion dans la liste est l'ordre logique
@@ -78,8 +84,19 @@ public class BinaryNode<T extends Comparable<? super T> > {
     // O(n)
     public void fillListInOrder(List<BinaryNode<T>> result) {
 
-        if(this.left != null) this.left.fillListInOrder(result);
-        result.add(this);
-        if(this.right != null) this.right.fillListInOrder(result);
+        Stack<BinaryNode<T>> stack = new Stack<>();
+        BinaryNode<T> currentNode = this;
+        while(currentNode != null || stack.size()>0){
+
+            while (currentNode != null){
+                stack.push(currentNode);
+                currentNode = currentNode.left;
+            }
+
+            currentNode = stack.pop();
+            result.add(currentNode);
+
+            currentNode = currentNode.right;
+        }
     }
 }
